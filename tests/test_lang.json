@@ -1,0 +1,10 @@
+{
+    "en": {
+        "hello": "Hello",
+        "world": "World"
+    },
+    "hu": {
+        "hello": "Helló",
+        "world": "Világ"
+    }
+}
