@@ -2,9 +2,7 @@ from setuptools import setup, find_packages
 from pathlib import Path
 import os
 
-here = os.path.abspath(os.path.dirname(__file__))
-
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 DESCRIPTION = 'A discord.py extension for command localization.'
 
 # Setting up
@@ -16,7 +14,7 @@ setup(
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     long_description=Path("README.md").read_text(),
-    packages=find_packages(),
+    packages=["discord.ext.localization"],
     install_requires=[],
     keywords=['discord.py', 'i18n', 'translation', 'localisation', 'localization'],
     classifiers=[
