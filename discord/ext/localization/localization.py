@@ -123,7 +123,6 @@ class Localization:
                 logging.error("Localization \"{}\" not found for language {}".format(text, locale))
                 return text
         if not isinstance(localized_text, list):
-            print(localized_text, type(localized_text))
             if self.error:
                 raise TypeError("translation for \"{}\" is not a list, but a {}".format(text, type(localized_text)))
             else:
