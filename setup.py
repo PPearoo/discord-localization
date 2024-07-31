@@ -2,7 +2,7 @@ from setuptools import setup
 from pathlib import Path
 import os
 
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 DESCRIPTION = 'A discord.py extension for command localization.'
 
 # Setting up
