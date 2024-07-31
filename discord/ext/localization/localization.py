@@ -5,6 +5,7 @@ from typing import Any, List, Optional, Union
 from sys import argv
 from discord import Guild, Locale, Interaction
 from discord.ext.commands import Context
+import locale
 
 class Localization:
     """discord.py extension for command localization."""
@@ -50,10 +51,8 @@ class Localization:
         
         -------
         ### Returns:
-            :class:`str`
-                The localized string.
-            List[:class:`str`]
-                If the localization is a list, it returns the list of localized strings.
+            :class:`str`: The localized string.
+            List[:class:`str`]: If the localization is a list, it returns the list of localized strings.
         """
         if isinstance(locale, Guild):
             locale = str(locale.preferred_locale)
@@ -94,18 +93,18 @@ class Localization:
         
         -------
         ### Parameters:
-            text: `str`
+            text: :class:`str`
                 The key to find in the localization file.
+            number: Union[:class:`int`, :class:`float`]
+                The number to determine whether to use the singular or plural form.
             locale: Union[:class:`str` | :class:`discord.Locale` | :class:`discord.Guild` | :class:`discord.Interaction` | :class:`discord.commands.ext.Context`]
                 The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
-            number: Union[`int`, `float`]
-                The number to determine whether to use the singular or plural form.
             **kwargs: `Any`
                 The arguments to pass to the string formatter.
                 
         -------
         ### Returns:
-            `str` If `num` is 1, returns the first item of the list. Otherwise, it returns the last item of the list. If the list only has 1 item, it returns that item.
+            :class:`str`: If `num` is 1, returns the first item of the list. Otherwise, it returns the last item of the list. If the list only has 1 item, it returns that item.
         """
         if isinstance(locale, Guild):
             locale = str(locale.preferred_locale)
@@ -117,14 +116,18 @@ class Localization:
             raise TypeError("locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
         
         localized_text = self.localize(text, locale, **kwargs)
-        if not isinstance(localized_text, list):
-            raise TypeError("translation for \"{}\" is not a list".format(text))
-        
         if not localized_text:
             if self.error:
                 raise KeyError("localization \"{}\" not found for language {}".format(text, locale))
             else:
                 logging.error("Localization \"{}\" not found for language {}".format(text, locale))
+                return text
+        if not isinstance(localized_text, list):
+            print(localized_text, type(localized_text))
+            if self.error:
+                raise TypeError("translation for \"{}\" is not a list, but a {}".format(text, type(localized_text)))
+            else:
+                logging.error("Translation for \"{}\" is not a list, but a {}".format(text, type(localized_text)))
                 return text
         
         if number == 1:

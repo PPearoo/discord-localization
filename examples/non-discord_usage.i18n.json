@@ -1,0 +1,8 @@
+{
+    "en": {
+        "dice_result": "Your dice rolled {dice}!"
+    },
+    "de": {
+        "dice_result": "Dein Würfel hat eine {dice} gewürfelt!"
+    }
+ }

@@ -1,0 +1,14 @@
+{
+    "en": {
+        "ping": "Pong! {latency}ms"
+    },
+    "en-US": {
+        "ping": "Pong! {latency}ms, but American! (because Discord makes a difference between en-US and en-UK locales - you can circumvent this by setting the default_locale)"
+    },
+    "en-UK": {
+        "ping": "Ping is {latency}ms, innit, bruv? (i'm sorry)"
+    },
+    "fr": {
+        "ping": "Bonjour! Ping is {latency}ms!"
+    }
+}

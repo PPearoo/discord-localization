@@ -1,0 +1,8 @@
+{
+    "en": {
+        "apples": ["You only have one apple! What a loser...", "You have {apples} apples!"]
+    },
+    "hu": {
+        "apples": ["{apples} almád van!"]
+    }
+}
