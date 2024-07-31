@@ -4,7 +4,7 @@
         "world": "World"
     },
     "hu": {
-        "hello": "Helló",
+        "hello": ["Helló", "a"],
         "world": "Világ"
     }
 }

@@ -1,9 +1,10 @@
 import json
 import logging
 import os
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, Optional, Union
 from sys import argv
-from discord import Guild, Locale
+from discord import Guild, Locale, Interaction
+from discord.ext.commands import Context
 
 class Localization:
     """discord.py extension for command localization."""
@@ -15,13 +16,11 @@ class Localization:
         -------
         ### Parameters:
             relative_path: :class:`str`
-                The name of the file to load the translations from. This must be a JSON file.
-            
+                The name of the file to load the localizations from. This must be a JSON file.
             default_locale: Optional[:class:`str`]
-                The default locale to use if the locale is not found in the translation.
-            
+                The default locale to use if the locale is not found in the localization.
             error: Optional[:class:`bool`]
-                Whether to raise an error if the translation is not found. If set to `False`, it will return the key itself.
+                Whether to raise an error if the localization is not found. If set to `False`, it will return the key itself. Defaults to `False`.
         """
         script_path = os.path.abspath(argv[0])
         script_dir = os.path.dirname(script_path)
@@ -34,63 +33,60 @@ class Localization:
             with open(self.relative_path, "r", encoding="utf-8") as f:
                 self.file: dict = json.load(f)
         except json.JSONDecodeError:
-            raise ValueError("Invalid JSON format in translation file: {}".format(self.relative_path))
+            raise ValueError("invalid JSON format in translation file: {}".format(self.relative_path))
 
-    def localize(self, text: str, locale: Optional[str | Locale], guild: Optional[Guild], **kwargs: Any) -> str | List[str]:
+    def localize(self, text: str, locale: Union[str, Locale, Guild, Interaction, Context], **kwargs: Any) -> Union[str, List[str]]:
         """
-        Gets the translation of a string like it's done in i18n.
-        
-        If `text` is not found in the translation file, or if there isn't a translation file, it returns `text` itself.
+        Gets the localization of a string like it's done in i18n.
         
         -------
         ### Parameters:
             text: :class:`str`
-                The key to find in the translation file.
-            locale: Optional[:class:`str` | :class:`discord.Locale`]
-                The locale of the language you want to translate to. Either this or the `guild` parameter must be provided.
-            guild: Optional[:class:`discord.Guild`]
-                The guild to get the locale from. If not provided, it will use the locale given in the `locale` parameter. Either this or the `locale` parameter must be provided.
+                The key to find in the localization file.
+            locale: Union[:class:`str` | :class:`discord.Locale` | :class:`discord.Guild` | :class:`discord.Interaction` | :class:`discord.commands.ext.Context`]
+                The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
             **kwargs: :class:`Any`
                 The arguments to pass to the string formatter.
         
         -------
         ### Returns:
-            `str`
-                The translated string.
+            :class:`str`
+                The localized string.
             List[:class:`str`]
-                If the translation is a list, it returns the list of translated strings.
+                If the localization is a list, it returns the list of localized strings.
         """
-        locale = str(locale) or str(guild.preferred_locale) # to accomodate for discord.Locale
-        if not locale:
-            if self.error:
-                raise ValueError("No locale provided")
-            else:
-                logging.error("No locale provided")
-                return text
+        if isinstance(locale, Guild):
+            locale = str(locale.preferred_locale)
+        elif isinstance(locale, (Interaction, Context)):
+            locale = str(locale.guild.preferred_locale)
+        elif isinstance(locale, (Locale, str)):
+            locale = str(locale)
+        else:
+            raise TypeError("locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
         
         localizations = self.file.get(locale) or self.file.get(self.default_locale)
         if not localizations:
             if self.error:
-                raise KeyError("No localizations for language {}".format(locale))
+                raise KeyError("no localizations for language {}".format(locale))
             else:
                 logging.error("No localizations for language {}".format(locale))
                 return text
         
         localized_text = localizations.get(text)
         if localized_text:
-            if isinstance(localized_text, Sequence[str]):
+            if isinstance(localized_text, list):
                 return [localized_item.format(**kwargs) for localized_item in localizations[text]]
             return localized_text.format(**kwargs)
         else:
             if self.error:
-                raise KeyError("Localization \"{}\" not found for language {}".format(text, locale))
+                raise KeyError("localization \"{}\" not found for language {}".format(text, locale))
             else:
                 logging.error("Localization \"{}\" not found for language {}".format(text, locale))
                 return text
     
     _ = t = translate = localise = localize
     
-    def one(self, text: str, number: int | float, locale: str, **kwargs: Any) -> str:
+    def one(self, text: str, number: Union[int, float], locale: str, **kwargs: Any) -> str:
         """
         Gets the singular and plural form of a string like it's done in i18n.
         
@@ -99,29 +95,34 @@ class Localization:
         -------
         ### Parameters:
             text: `str`
-                The key to find in the translation file.
-            locale: `str`
-                The locale of the language you want to translate to.
-            num: `int` or `float`
-                The number to decide which form to use.
+                The key to find in the localization file.
+            locale: Union[:class:`str` | :class:`discord.Locale` | :class:`discord.Guild` | :class:`discord.Interaction` | :class:`discord.commands.ext.Context`]
+                The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
+            number: Union[`int`, `float`]
+                The number to determine whether to use the singular or plural form.
             **kwargs: `Any`
                 The arguments to pass to the string formatter.
                 
         -------
         ### Returns:
-            `str`
-                If `num` is 1, returns the first item of the list.
-                Otherwise, it returns the last item of the list.
-                If the list only has 1 item, it returns that item.
+            `str` If `num` is 1, returns the first item of the list. Otherwise, it returns the last item of the list. If the list only has 1 item, it returns that item.
         """
+        if isinstance(locale, Guild):
+            locale = str(locale.preferred_locale)
+        elif isinstance(locale, (Interaction, Context)):
+            locale = str(locale.guild.preferred_locale)
+        elif isinstance(locale, (Locale, str)):
+            locale = str(locale)
+        else:
+            raise TypeError("locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
         
         localized_text = self.localize(text, locale, **kwargs)
-        if not isinstance(localized_text, Sequence[str]):
-            raise TypeError("Translation for \"{}\" is not a list".format(text))
+        if not isinstance(localized_text, list):
+            raise TypeError("translation for \"{}\" is not a list".format(text))
         
         if not localized_text:
             if self.error:
-                raise KeyError("Localization \"{}\" not found for language {}".format(text, locale))
+                raise KeyError("localization \"{}\" not found for language {}".format(text, locale))
             else:
                 logging.error("Localization \"{}\" not found for language {}".format(text, locale))
                 return text
