@@ -5,7 +5,6 @@ from typing import Any, List, Optional, Union
 from sys import argv
 from discord import Guild, Locale, Interaction
 from discord.ext.commands import Context
-import locale
 
 class Localization:
     """discord.py extension for command localization."""
