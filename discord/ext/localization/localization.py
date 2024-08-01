@@ -82,7 +82,7 @@ class Localization:
             if self.error:
                 raise LocalizationNotFound(text, locale)
             else:
-                logging.error(LocalizationFileNotFound(text, locale))
+                logging.error(LocalizationNotFound(text, locale))
                 return text
     
     _ = t = translate = localise = localize
