@@ -22,4 +22,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .localization import Localization as Localization
+from .localization import *
+from .errors import *

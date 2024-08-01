@@ -5,6 +5,7 @@ from typing import Any, List, Optional, Union
 from sys import argv
 from discord import Guild, Locale, Interaction
 from discord.ext.commands import Context
+from .errors import *
 
 class Localization:
     """discord.py extension for command localization."""
@@ -33,7 +34,9 @@ class Localization:
             with open(self.relative_path, "r", encoding="utf-8") as f:
                 self.file: dict = json.load(f)
         except json.JSONDecodeError:
-            raise ValueError("invalid JSON format in translation file: {}".format(self.relative_path))
+            raise InvalidJSONFormat(self.relative_path)
+        except FileNotFoundError:
+            raise LocalizationFileNotFound(self.relative_path)
 
     def localize(self, text: str, locale: Union[str, Locale, Guild, Interaction, Context], **kwargs: Any) -> Union[str, List[str]]:
         """
@@ -60,14 +63,14 @@ class Localization:
         elif isinstance(locale, (Locale, str)):
             locale = str(locale)
         else:
-            raise TypeError("locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
+            raise TypeError("Locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
         
         localizations = self.file.get(locale) or self.file.get(self.default_locale)
         if not localizations:
             if self.error:
-                raise KeyError("no localizations for language {}".format(locale))
+                raise InvalidLocale(locale)
             else:
-                logging.error("No localizations for language {}".format(locale))
+                logging.error(InvalidLocale(locale))
                 return text
         
         localized_text = localizations.get(text)
@@ -77,9 +80,9 @@ class Localization:
             return localized_text.format(**kwargs)
         else:
             if self.error:
-                raise KeyError("localization \"{}\" not found for language {}".format(text, locale))
+                raise LocalizationNotFound(text, locale)
             else:
-                logging.error("Localization \"{}\" not found for language {}".format(text, locale))
+                logging.error(LocalizationFileNotFound(text, locale))
                 return text
     
     _ = t = translate = localise = localize
@@ -112,20 +115,15 @@ class Localization:
         elif isinstance(locale, (Locale, str)):
             locale = str(locale)
         else:
-            raise TypeError("locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
+            raise TypeError("Locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
         
         localized_text = self.localize(text, locale, **kwargs)
-        if not localized_text:
-            if self.error:
-                raise KeyError("localization \"{}\" not found for language {}".format(text, locale))
-            else:
-                logging.error("Localization \"{}\" not found for language {}".format(text, locale))
-                return text
+
         if not isinstance(localized_text, list):
             if self.error:
-                raise TypeError("translation for \"{}\" is not a list, but a {}".format(text, type(localized_text)))
+                raise WrongLocalizationFormat(locale, type(localized_text))
             else:
-                logging.error("Translation for \"{}\" is not a list, but a {}".format(text, type(localized_text)))
+                logging.error(WrongLocalizationFormat(locale, type(localized_text)))
                 return text
         
         if number == 1:
