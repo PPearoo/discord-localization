@@ -27,12 +27,16 @@ class Localization:
         script_dir = os.path.dirname(script_path)
         
         self.relative_path: str = os.path.join(script_dir, relative_path)
+        """The relative path to the localization file."""
         self.default_locale: str = default_locale
+        """A fallback locale that is used if a given locale is not found in the localization file."""
         self.error: bool = error
+        """Whether the library should raise errors log them using `logging.error()`."""
         
         try:
             with open(self.relative_path, "r", encoding="utf-8") as f:
                 self.file: dict = json.load(f)
+                """The contents of the localization file."""
         except json.JSONDecodeError:
             raise InvalidJSONFormat(self.relative_path)
         except FileNotFoundError:
@@ -42,19 +46,24 @@ class Localization:
         """
         Gets the localization of a string like it's done in i18n.
         
-        -------
-        ### Parameters:
-            text: :class:`str`
-                The key to find in the localization file.
-            locale: Union[:class:`str` | :class:`discord.Locale` | :class:`discord.Guild` | :class:`discord.Interaction` | :class:`discord.commands.ext.Context`]
-                The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
-            **kwargs: :class:`Any`
-                The arguments to pass to the string formatter.
+        Parameters
+        ----------
+        text: :class:`str`
+            The key to find in the localization file.
+        locale: Union[:class:`str`, :class:`discord.Locale`, :class:`discord.Guild`, :class:`discord.Interaction`, :class:`discord.ext.commands.Context`]
+            The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
+        **kwargs: Any
+            The arguments to pass to the string formatter.
         
+        Returns
         -------
-        ### Returns:
-            :class:`str`: The localized string.
-            List[:class:`str`]: If the localization is a list, it returns the list of localized strings.
+        Union[:class:`str`, List[:class:`str`]]: The localized string. If the localization is a list, it returns the list of localized strings.
+        
+        Raises
+        ------
+        `TypeError`: The locale parameter received an incorrect type.
+        `InvalidLocale`: The locale parameter is not found in the localization file.
+        `LocalizationNotFound`: The localization key is not found in the localization file.
         """
         if isinstance(locale, Guild):
             locale = str(locale.preferred_locale)
@@ -93,30 +102,25 @@ class Localization:
         
         For this, you need to have the key in the JSON be a list of two strings, the first being the singular form, the second being the plural form.
         
-        -------
-        ### Parameters:
-            text: :class:`str`
-                The key to find in the localization file.
-            number: Union[:class:`int`, :class:`float`]
-                The number to determine whether to use the singular or plural form.
-            locale: Union[:class:`str` | :class:`discord.Locale` | :class:`discord.Guild` | :class:`discord.Interaction` | :class:`discord.commands.ext.Context`]
-                The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
-            **kwargs: `Any`
-                The arguments to pass to the string formatter.
-                
-        -------
-        ### Returns:
-            :class:`str`: If `num` is 1, returns the first item of the list. Otherwise, it returns the last item of the list. If the list only has 1 item, it returns that item.
-        """
-        if isinstance(locale, Guild):
-            locale = str(locale.preferred_locale)
-        elif isinstance(locale, (Interaction, Context)):
-            locale = str(locale.guild.preferred_locale)
-        elif isinstance(locale, (Locale, str)):
-            locale = str(locale)
-        else:
-            raise TypeError("Locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
+        This method can raise any errors that the :meth:`localize` method can raise.
         
+        Parameters
+        ----------
+        text: `str`
+            The key to find in the localization file.
+        number: `Union[int, float]`
+            The number to determine whether to use the singular or plural form.
+        locale: `str`
+            The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
+        
+        Returns
+        -------
+        `str`: If `num` is 1, returns the first item of the list. Otherwise, it returns the last item of the list.
+        
+        Raises
+        ------
+        `WrongLocalizationFormat`: The localization key is not a list.
+        """
         localized_text = self.localize(text, locale, **kwargs)
 
         if not isinstance(localized_text, list):
