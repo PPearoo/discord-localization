@@ -96,7 +96,7 @@ class Localization:
     
     _ = t = translate = localise = localize
     
-    def one(self, text: str, number: Union[int, float], locale: str, **kwargs: Any) -> str:
+    def one(self, text: str, number: Union[int, float], locale: Union[str, Locale, Guild, Interaction, Context], **kwargs: Any) -> str:
         """
         Gets the singular and plural form of a string like it's done in i18n.
         
