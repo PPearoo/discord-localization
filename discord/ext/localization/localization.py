@@ -41,8 +41,34 @@ class Localization:
             raise InvalidJSONFormat(self.relative_path)
         except FileNotFoundError:
             raise LocalizationFileNotFound(self.relative_path)
+    
+    def format_strings(self, data: Any, **kwargs: Any) -> Any:
+        """
+        Formats the strings in a dictionary. This is used internally, to format strings in the :meth:`localize` method.
+        
+        It's not recommended to use this method in your code.
+        
+        Parameters
+        ----------
+        data: Any
+            The data to format.
+        **kwargs: Any
+            The arguments to pass to the string formatter.
+        
+        Returns
+        -------
+        Any: The formatted data.
+        """
+        if isinstance(data, dict):
+            return {key: self.format_strings(value, **kwargs) for key, value in data.items()}
+        elif isinstance(data, list):
+            return [self.format_strings(item, **kwargs) for item in data]
+        elif isinstance(data, str):
+            return data.format(**kwargs)
+        else:
+            return data
 
-    def localize(self, text: str, locale: Union[str, Locale, Guild, Interaction, Context], **kwargs: Any) -> Union[str, List[str]]:
+    def localize(self, text: str, locale: Union[str, Locale, Guild, Interaction, Context], **kwargs: Any) -> Union[str, List[str], dict]:
         """
         Gets the localization of a string like it's done in i18n.
         
@@ -57,7 +83,7 @@ class Localization:
         
         Returns
         -------
-        Union[:class:`str`, List[:class:`str`]]: The localized string. If the localization is a list, it returns the list of localized strings.
+        Union[:class:`str`, List[:class:`str`], :class:`dict`]: The localized data.
         
         Raises
         ------
@@ -84,9 +110,7 @@ class Localization:
         
         localized_text = localizations.get(text)
         if localized_text:
-            if isinstance(localized_text, list):
-                return [localized_item.format(**kwargs) for localized_item in localizations[text]]
-            return localized_text.format(**kwargs)
+            return self.format_strings(localized_text, **kwargs)
         else:
             if self.error:
                 raise LocalizationNotFound(text, locale)

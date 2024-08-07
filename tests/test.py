@@ -1,5 +1,5 @@
 from discord.ext import localization
-from discord import Locale
+import pprint
 
 _ = localization.Localization("test_lang.json", error=True)
-print(_.file, _("world", Locale.taiwan_chinese))
+pprint.pprint(_("test", "hu", a="EXAMPLE"))

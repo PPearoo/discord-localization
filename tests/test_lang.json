@@ -5,6 +5,14 @@
     },
     "hu": {
         "hello": ["Helló", "a"],
-        "world": "Világ"
+        "world": "Világ",
+        "test": {
+            "nested": "Nested {a}",
+            "array": ["Array {a}", "of", "strings {a}"],
+            "object": {
+                "key": "Value {a}",
+                "list": ["List {a}", "of", "values {a}", { "nested": "Nested {a}", "this": "is {a}" }]
+            }
+        }
     }
 }
