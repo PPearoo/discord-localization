@@ -151,8 +151,6 @@ class Localization:
     def format_strings(data: Any, **kwargs: Any) -> Any:
         """Formats the strings in a dictionary. This is used internally, to format strings in the :meth:`localize` method.
         
-        It's not recommended to use this method in your code.
-        
         Parameters
         ----------
         data: Any
