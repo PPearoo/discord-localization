@@ -139,7 +139,10 @@ class Localization:
         return (self.file != other.file)
     
     def __repr__(self) -> str:
-        return f"<Localization localizations={self.localizations!r} default_locale={self.default_locale!r} error={self.error!r} file={self._file}>"
+        if isinstance(self.localizations, str):
+            return f"<Localization localizations={self.localizations!r} default_locale={self.default_locale!r} error={self.error!r} file={self._file}>"
+        elif isinstance(self.localizations, dict):
+            return f"<Localization localizations={self.localizations} default_locale={self.default_locale!r} error={self.error!r}>"
     
     def __dict__(self) -> dict:
         return self._file
