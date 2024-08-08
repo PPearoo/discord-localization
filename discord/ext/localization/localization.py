@@ -133,12 +133,10 @@ class Localization:
         self._file: dict = value
     
     def __eq__(self, other: Self) -> bool:
-        return (self.localizations == other.localizations and
-                self.default_locale == other.default_locale and
-                self.error == other.error)
+        return (self.file == other.file)
     
     def __ne__(self, other: Self) -> bool:
-        return not self.__eq__(other)
+        return (self.file != other.file)
     
     def __repr__(self) -> str:
         return f"<Localization localizations={self.localizations!r} default_locale={self.default_locale!r} error={self.error!r} file={self._file}>"
