@@ -4,7 +4,8 @@ from discord.ext import commands, localization
 class LocalizationCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self._ = localization.Localization("cogs/discord_integration_as_cog.i18n.json", "en") # ! Because a cog is run from the main file, the path is relative to the main file!!!
+        self._ = localization.Localization("cogs/discord_integration_as_cog.i18n.json", "en")
+        # ! Because a cog is run from the main file, the path is relative to the main file!!!
         
     @commands.Cog.listener()
     async def on_ready(self):

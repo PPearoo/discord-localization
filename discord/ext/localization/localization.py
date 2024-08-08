@@ -99,6 +99,8 @@ class Localization:
             locale = str(locale)
         else:
             raise TypeError("Locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
+
+
         
         localizations = self.file.get(locale) or self.file.get(self.default_locale)
         if not localizations:
@@ -108,15 +110,28 @@ class Localization:
                 logging.error(InvalidLocale(locale))
                 return text
         
-        localized_text = localizations.get(text)
-        if localized_text:
-            return self.format_strings(localized_text, **kwargs)
+        if "." in text:
+            keys = text.split(".")
+            value = localizations
+            for key in keys:
+                if isinstance(value, dict):
+                    value = value.get(key)
+                    if value is None:
+                        break
+                else:
+                    value = None
+                    break
         else:
+            value = localizations.get(text)
+        
+        if value is None:
             if self.error:
                 raise LocalizationNotFound(text, locale)
             else:
                 logging.error(LocalizationNotFound(text, locale))
                 return text
+        
+        return self.format_strings(value, **kwargs)
     
     _ = t = translate = localise = localize
     

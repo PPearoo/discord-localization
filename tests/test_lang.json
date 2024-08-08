@@ -1,18 +1,16 @@
 {
     "en": {
-        "hello": "Hello",
-        "world": "World"
+        "apples": {
+            "one": "You only have one apple! What a loser...",
+            "three": "You have three apples! That's a lot!",
+            "many": "You have {apples} apples!"
+        }
     },
     "hu": {
-        "hello": ["Helló", "a"],
-        "world": "Világ",
-        "test": {
-            "nested": "Nested {a}",
-            "array": ["Array {a}", "of", "strings {a}"],
-            "object": {
-                "key": "Value {a}",
-                "list": ["List {a}", "of", "values {a}", { "nested": "Nested {a}", "this": "is {a}" }]
-            }
+        "apples": {
+            "one": "{apples} almád van!",
+            "three": "Három almád van! Ez nagyon sok!",
+            "many": "Van {apples} almád!"
         }
     }
 }
