@@ -1,50 +1,154 @@
 import json
 import logging
 import os
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Self
 from sys import argv
 from discord import Guild, Locale, Interaction
 from discord.ext.commands import Context
 from .errors import *
+import yaml
 
 class Localization:
-    """discord.py extension for command localization."""
+    """Represents an object that can be later used as a reference to localize strings.
     
-    def __init__(self, relative_path: str, default_locale: Optional[str] = None, error: Optional[bool] = False) -> None:
-        """
-        Represents a localization object.
+    .. container:: operations
         
-        -------
-        ### Parameters:
-            relative_path: :class:`str`
-                The name of the file to load the localizations from. This must be a JSON file.
-            default_locale: Optional[:class:`str`]
-                The default locale to use if the locale is not found in the localization.
-            error: Optional[:class:`bool`]
-                Whether to raise an error if the localization is not found. If set to `False`, it will return the key itself. Defaults to `False`.
-        """
+        .. describe:: x == y
+            
+            Checks if two instances are the same.
+                
+        .. describe:: x != y
+                
+            Checks if two instances are not the same.
+            
+        .. describe:: dict(x)
+        
+            Returns the dictionary containing the localizations.
+    
+    Attributes
+    ----------
+    localizations: Union[:class:`str`, :class:`dict`]
+        :class:`str` - The relative path to the localization file, either a JSON or YAML file.
+        :class:`dict` - The dictionary containing the localizations.
+    default_locale: Optional[:class:`str`]
+        The default locale to use if the locale is not found in the localization.
+    error: Optional[:class:`bool`]
+        Whether to raise an error if the localization is not found. If set to `False`, it will return the key itself. Defaults to `False`.
+    """
+    
+    def __init__(
+        self,
+        localizations: Union[str, dict],
+        default_locale: Optional[str] = None,
+        error: Optional[bool] = False
+    ) -> None:
         script_path = os.path.abspath(argv[0])
         script_dir = os.path.dirname(script_path)
         
-        self.relative_path: str = os.path.join(script_dir, relative_path)
-        """The relative path to the localization file."""
-        self.default_locale: str = default_locale
-        """A fallback locale that is used if a given locale is not found in the localization file."""
-        self.error: bool = error
-        """Whether the library should raise errors log them using `logging.error()`."""
+        if isinstance(localizations, str):
+            self._localizations: str = os.path.join(script_dir, localizations)
+        elif isinstance(localizations, dict):
+            self._localizations: dict = localizations
+            
+        self._default_locale: str = default_locale
+        self._error: bool = error
+        
         
         try:
-            with open(self.relative_path, "r", encoding="utf-8") as f:
-                self.file: dict = json.load(f)
-                """The contents of the localization file."""
+            if isinstance(localizations, str):
+                if localizations.endswith(".json"):
+                    with open(self._localizations, "r", encoding="utf-8") as f:
+                        self._file: dict = json.load(f)
+                elif localizations.endswith(".yaml") or localizations.endswith(".yml"):
+                    with open(self._localizations, "r", encoding="utf-8") as f:
+                        self._file: dict = yaml.safe_load(f)
+                        
+            elif isinstance(localizations, dict):
+                self._file: dict = localizations
+                
         except json.JSONDecodeError:
-            raise InvalidJSONFormat(self.relative_path)
+            raise InvalidJSONFormat(self._localizations)
         except FileNotFoundError:
-            raise LocalizationFileNotFound(self.relative_path)
+            raise LocalizationFileNotFound(self._localizations)
+        
+    @property
+    def localizations(self) -> Union[str, dict]:
+        """A path to the localization file or a dictionary containing the localizations.
+        
+        Setting this to a value after the object has been created will reload the localizations."""
+        return self._localizations
     
-    def format_strings(self, data: Any, **kwargs: Any) -> Any:
-        """
-        Formats the strings in a dictionary. This is used internally, to format strings in the :meth:`localize` method.
+    @localizations.setter
+    def localizations(self, value: Union[str, dict]) -> None:
+        script_path = os.path.abspath(argv[0])
+        script_dir = os.path.dirname(script_path)
+        
+        if isinstance(value, str):
+            self._localizations: str = os.path.join(script_dir, value)
+        elif isinstance(value, dict):
+            self._localizations: dict = value
+        
+        try:
+            if isinstance(value, str):
+                if value.endswith(".json"):
+                    with open(self._localizations, "r", encoding="utf-8") as f:
+                        self._file: dict = json.load(f)
+                elif value.endswith(".yaml") or value.endswith(".yml"):
+                    with open(self._localizations, "r", encoding="utf-8") as f:
+                        self._file: dict = yaml.safe_load(f)
+                        
+            elif isinstance(value, dict):
+                self._file: dict = value
+                
+        except json.JSONDecodeError:
+            raise InvalidJSONFormat(self._localizations)
+        except FileNotFoundError:
+            raise LocalizationFileNotFound(self._localizations)
+    
+    @property
+    def default_locale(self) -> Optional[str]:
+        """A fallback locale that is used if a given locale is not found in the localization file."""
+        return self._default_locale
+
+    @default_locale.setter
+    def default_locale(self, value: Optional[str]) -> None:
+        self._default_locale: str = value
+    
+    @property
+    def error(self) -> Optional[bool]:
+        """Whether the library should raise errors (`True`) or log them using `logging.error()` (`False`)."""
+        return self._error
+    
+    @error.setter
+    def error(self, value: Optional[bool]) -> None:
+        self._error: bool = value
+    
+    @property
+    def file(self) -> dict:
+        """The dictionary containing the localizations."""
+        return self._file
+    
+    @file.setter
+    def file(self, value: dict) -> None:
+        self._file: dict = value
+    
+    def __eq__(self, other: Self) -> bool:
+        return (self.localizations == other.localizations and
+                self.default_locale == other.default_locale and
+                self.error == other.error)
+    
+    def __ne__(self, other: Self) -> bool:
+        return not self.__eq__(other)
+    
+    def __repr__(self) -> str:
+        return f"<Localization localizations={self.localizations!r} default_locale={self.default_locale!r} error={self.error!r} file={self._file}>"
+    
+    def __dict__(self) -> dict:
+        return self._file
+    
+    @staticmethod
+    def format_strings(data: Any, **kwargs: Any) -> Any:
+        """Formats the strings in a dictionary. This is used internally, to format strings in the :meth:`localize` method.
         
         It's not recommended to use this method in your code.
         
@@ -60,17 +164,16 @@ class Localization:
         Any: The formatted data.
         """
         if isinstance(data, dict):
-            return {key: self.format_strings(value, **kwargs) for key, value in data.items()}
+            return {key: Localization.format_strings(value, **kwargs) for key, value in data.items()}
         elif isinstance(data, list):
-            return [self.format_strings(item, **kwargs) for item in data]
+            return [Localization.format_strings(item, **kwargs) for item in data]
         elif isinstance(data, str):
             return data.format(**kwargs)
         else:
             return data
 
     def localize(self, text: str, locale: Union[str, Locale, Guild, Interaction, Context], **kwargs: Any) -> Union[str, List[str], dict]:
-        """
-        Gets the localization of a string like it's done in i18n.
+        """Gets the localization of a string like it's done in i18n.
         
         Parameters
         ----------
@@ -99,12 +202,10 @@ class Localization:
             locale = str(locale)
         else:
             raise TypeError("Locale must be of type str, discord.Locale, discord.Guild, discord.Interaction, or discord.ext.commands.Context, received {}".format(type(locale)))
-
-
         
-        localizations = self.file.get(locale) or self.file.get(self.default_locale)
+        localizations = self._file.get(locale) or self._file.get(self._default_locale)
         if not localizations:
-            if self.error:
+            if self._error:
                 raise InvalidLocale(locale)
             else:
                 logging.error(InvalidLocale(locale))
@@ -125,7 +226,7 @@ class Localization:
             value = localizations.get(text)
         
         if value is None:
-            if self.error:
+            if self._error:
                 raise LocalizationNotFound(text, locale)
             else:
                 logging.error(LocalizationNotFound(text, locale))
@@ -136,8 +237,7 @@ class Localization:
     _ = t = translate = localise = localize
     
     def one(self, text: str, number: Union[int, float], locale: Union[str, Locale, Guild, Interaction, Context], **kwargs: Any) -> str:
-        """
-        Gets the singular and plural form of a string like it's done in i18n.
+        """Gets the singular and plural form of a string like it's done in i18n.
         
         For this, you need to have the key in the JSON be a list of two strings, the first being the singular form, the second being the plural form.
         
@@ -145,16 +245,16 @@ class Localization:
         
         Parameters
         ----------
-        text: `str`
+        text: :class:`str`
             The key to find in the localization file.
-        number: `Union[int, float]`
+        number: Union[:class:`int`, :class:`float`]
             The number to determine whether to use the singular or plural form.
-        locale: `str`
+        locale: :class:`str`
             The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
         
         Returns
         -------
-        `str`: If `num` is 1, returns the first item of the list. Otherwise, it returns the last item of the list.
+        :class:`str`: If `num` is 1, returns the first item of the list. Otherwise, it returns the last item of the list.
         
         Raises
         ------
@@ -163,7 +263,7 @@ class Localization:
         localized_text = self.localize(text, locale, **kwargs)
 
         if not isinstance(localized_text, list):
-            if self.error:
+            if self._error:
                 raise WrongLocalizationFormat(locale, type(localized_text))
             else:
                 logging.error(WrongLocalizationFormat(locale, type(localized_text)))

@@ -1,4 +1,6 @@
 """
+A discord.py extension for command localization.
+
 MIT License
 
 Copyright (c) 2024 Pearoo

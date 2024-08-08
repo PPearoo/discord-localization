@@ -1,0 +1,9 @@
+en:
+  test: "This is a test YAML"
+  nested:
+    first: "first nested thing"
+    second:
+      third: ["third nested thing", "another third nested thing with a kwarg {test}"]
+      fourth: "fourth nested thing with a kwarg {test}"
+hu:
+  test: "Ez egy teszt YAML"
