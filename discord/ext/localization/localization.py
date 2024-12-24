@@ -50,6 +50,7 @@ class Localization:
     def __init__(
         self,
         localizations: Union[str, dict],
+        *,
         default_locale: Optional[str] = None,
         error: Optional[bool] = False
     ) -> None:
