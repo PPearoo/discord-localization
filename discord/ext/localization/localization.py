@@ -43,6 +43,8 @@ class Localization:
     separator: :class:`str`
         The separator to use when the key is a nested dictionary. Defaults to `"."`.
         
+        .. added:: v1.1.3
+        
     Raises
     ------
     `InvalidJSONFormat`: The localization file is not in a valid JSON format.
