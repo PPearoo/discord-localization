@@ -1,7 +1,7 @@
 from setuptools import setup
 from pathlib import Path
 
-VERSION = '1.1.2'
+VERSION = '1.1.3'
 DESCRIPTION = 'A discord.py extension for command localization.'
 
 # Setting up
@@ -22,7 +22,7 @@ setup(
         "Operating System :: OS Independent"
     ],
     project_urls={
-        "Source": "https://github.com/PearooXD/discord-localization"
+        "Source": "https://github.com/rnxm/discord-localization"
     }
 )
 # command: python setup.py sdist bdist_wheel

@@ -43,7 +43,10 @@ class Localization:
     separator: :class:`str`
         The separator to use when the key is a nested dictionary. Defaults to `"."`.
         
-        .. added:: v1.1.3
+        .. versionadded:: v1.1.3
+    
+    .. versionchanged:: v1.1.3
+        `default_locale` and `error` are now keyword-only.
         
     Raises
     ------
