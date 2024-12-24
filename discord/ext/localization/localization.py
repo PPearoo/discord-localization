@@ -40,6 +40,8 @@ class Localization:
         The default locale to use if the locale is not found in the localization.
     error: Optional[:class:`bool`]
         Whether to raise an error if the localization is not found. If set to `False`, it will return the key itself. Defaults to `False`.
+    separator: :class:`str`
+        The separator to use when the key is a nested dictionary. Defaults to `"."`.
         
     Raises
     ------
@@ -52,12 +54,14 @@ class Localization:
         localizations: Union[str, dict],
         *,
         default_locale: Optional[str] = None,
-        error: Optional[bool] = False
+        error: Optional[bool] = False,
+        separator: str = "."
     ) -> None:
             
         self._default_locale: str = default_locale
         self._error: bool = error
         self._file: dict = {}
+        self._separator: str = separator
         
         
         try:
@@ -179,8 +183,8 @@ class Localization:
                 logger.error(InvalidLocale(locale))
                 return text
         
-        if "." in text:
-            keys = text.split(".")
+        if self._separator in text:
+            keys = text.split(self._separator)
             value = localizations
             for key in keys:
                 if isinstance(value, dict):
