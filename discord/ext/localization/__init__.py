@@ -26,3 +26,7 @@ SOFTWARE.
 
 from .localization import *
 from .errors import *
+
+from pathlib import Path
+
+__version__ = "1.1.4"

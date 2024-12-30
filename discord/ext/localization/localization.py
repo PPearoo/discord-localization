@@ -5,44 +5,44 @@ import discord
 from discord.ext import commands
 from .errors import *
 import yaml
+import string
 
 Locale = Union[str, discord.Locale, discord.Guild, discord.Interaction, commands.Context]
+
+class CustomFormatter(string.Formatter):
+    def get_value(self, key, args, kwargs):
+        # Handle missing keys by returning a placeholder
+        if isinstance(key, str):
+            return kwargs.get(key, f"{{{key}}}")
+        return super().get_value(key, args, kwargs)
+
+    def get_field(self, field_name, args, kwargs):
+        try:
+            # Try to resolve the field normally
+            return super().get_field(field_name, args, kwargs)
+        except (KeyError, AttributeError):
+            # Return the placeholder if the key or attribute is missing
+            return f"{{{field_name}}}", field_name
+
+formatter = CustomFormatter()
 
 logger = logging.getLogger(__name__)
 
 class Localization:
     """Represents an object that can be later used as a reference to localize strings.
     
-    .. container:: operations
-        
-        .. describe:: x == y
-            
-            Checks if two instances are the same.
-                
-        .. describe:: x != y
-                
-            Checks if two instances are not the same.
-            
-        .. describe:: dict(x)
-        
-            Returns the dictionary containing the localizations.
-            
-        .. describe:: x
-        
-            Calls the :meth:`localize` method.
+    Calling this object will return the :meth:`localize` method.
     
-    Attributes
+    Parameters
     ----------
     localizations: Union[:class:`str`, :class:`dict`]
-        :class:`str` - The relative path to the localization file, either a JSON or YAML file.
-        :class:`dict` - The dictionary containing the localizations.
+        If :class:`str`, the relative path to the localization file, either a JSON or YAML file. If :class:`dict`, the dictionary containing the localizations.
     default_locale: Optional[:class:`str`]
         The default locale to use if the locale is not found in the localization.
     error: Optional[:class:`bool`]
         Whether to raise an error if the localization is not found. If set to `False`, it will return the key itself. Defaults to `False`.
     separator: :class:`str`
         The separator to use when the key is a nested dictionary. Defaults to `"."`.
-        
         .. versionadded:: v1.1.3
     
     .. versionchanged:: v1.1.3
@@ -50,8 +50,10 @@ class Localization:
         
     Raises
     ------
-    `InvalidJSONFormat`: The localization file is not in a valid JSON format.
-    `LocalizationFileNotFound`: The localization file was not found.
+    InvalidJSONFormat
+        The localization file is not in a valid JSON format.
+    LocalizationFileNotFound
+        The localization file was not found.
     """
     
     def __init__(
@@ -126,30 +128,33 @@ class Localization:
         return self._file
     
     @staticmethod
-    def format_strings(data: Any, **kwargs: Any) -> Any:
+    def format_strings(data: Any, *, placeholders: bool = True, **kwargs: Any) -> Any:
         """Formats the strings in a dictionary. This is used internally, to format strings in the :meth:`localize` method.
         
         Parameters
         ----------
         data: Any
             The data to format.
+        placeholders: :class:`bool`
+            If True, silently ignores KeyErrors during formatting.
         **kwargs: Any
             The arguments to pass to the string formatter.
         
         Returns
         -------
-        Any: The formatted data.
+        Any
+            The formatted data.
         """
         if isinstance(data, dict):
-            return {key: Localization.format_strings(value, **kwargs) for key, value in data.items()}
+            return {key: Localization.format_strings(value, placeholders=placeholders, **kwargs) for key, value in data.items()}
         elif isinstance(data, list):
-            return [Localization.format_strings(item, **kwargs) for item in data]
+            return [Localization.format_strings(item, placeholders=placeholders, **kwargs) for item in data]
         elif isinstance(data, str):
-            return data.format(**kwargs)
+            return formatter.format(data, **kwargs) if placeholders else data.format(**kwargs)
         else:
             return data
 
-    def localize(self, text: str, locale: Locale, **kwargs: Any) -> Union[str, list[str], dict[str, Any]]:
+    def localize(self, text: str, locale: Locale, *, placeholders: bool = True, **kwargs: Any) -> Union[str, list[str], dict[str, Any]]:
         """Gets the localization of a string like it's done in i18n.
         
         Parameters
@@ -158,18 +163,24 @@ class Localization:
             The key to find in the localization file.
         locale: `Locale`
             The locale to find the localization with, or an object that has an attribute that returns :class:`discord.Locale`.
+        placeholders: :class:`bool`
+            If True, silently ignores KeyErrors during formatting.
         **kwargs: Any
             The arguments to pass to the string formatter.
         
         Returns
         -------
-        Union[:class:`str`, list[:class:`str`], dict[:class:`str`, Any]]: The localized data.
+        Union[:class:`str`, list[:class:`str`], dict[:class:`str`, Any]]
+            The localized data.
         
         Raises
         ------
-        `TypeError`: The locale parameter received an incorrect type.
-        `InvalidLocale`: The locale parameter is not found in the localization file.
-        `LocalizationNotFound`: The localization key is not found in the localization file.
+        TypeError
+            The locale parameter received an incorrect type.
+        InvalidLocale
+            The locale parameter is not found in the localization file.
+        LocalizationNotFound
+            The localization key is not found in the localization file.
         """
         if isinstance(locale, discord.Guild):
             locale = str(locale.preferred_locale)
@@ -209,7 +220,7 @@ class Localization:
                 logger.error(LocalizationNotFound(text, locale))
                 return text
         
-        return self.format_strings(value, **kwargs)
+        return self.format_strings(value, placeholders=placeholders, **kwargs)
     
     _ = t = translate = localise = localize
     

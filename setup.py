@@ -1,7 +1,7 @@
 from setuptools import setup
 from pathlib import Path
 
-VERSION = '1.1.3'
+VERSION = '1.1.4'
 DESCRIPTION = 'A discord.py extension for command localization.'
 
 # Setting up
